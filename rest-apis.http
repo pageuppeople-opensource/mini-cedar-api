@@ -1,0 +1,289 @@
+@hostname = localhost
+@port = 3000
+@host = {{hostname}}:{{port}}
+@baseUrl = http://{{host}}
+
+###
+// hello world
+GET {{baseUrl}} HTTP/1.1
+
+###
+// access check
+POST {{baseUrl}}/bulk-has-access HTTP/1.1
+content-type: application/json
+
+{
+    "checks": [
+        {
+            "principal": "User::\"alice\"",
+            "action": "Action::\"view\"",
+            "resource": "Photo::\"VacationPhoto94.jpg\""
+        },
+        {
+            "principal": "User::\"alice\"",
+            "action": "Action::\"view\"",
+            "resource": "Photo::\"VacationPhoto95.jpg\""
+        }
+    ],
+    "entities": [
+        {
+            "uid": {
+            "type": "User",
+            "id": "alice"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "UserGroup",
+                "id": "jane_friends"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "User",
+            "id": "bob"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "User",
+            "id": "tim"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "UserGroup",
+                "id": "jane_friends"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "UserGroup",
+            "id": "jane_friends"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Administrator",
+            "id": "ahmad"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Action",
+            "id": "view"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Action",
+            "id": "comment"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Action",
+            "id": "edit"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Action",
+            "id": "delete"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Action",
+            "id": "listAlbums"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Action",
+            "id": "listPhotos"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Photo",
+            "id": "VacationPhoto94.jpg"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "Album",
+                "id": "jane_vacation"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "Photo",
+            "id": "passportscan.jpg"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "Account",
+                "id": "jane"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "Video",
+            "id": "surf.mp4"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "Album",
+                "id": "jane_vacation"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "Photo",
+            "id": "selfie.jpg"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "Account",
+                "id": "bob"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "Album",
+            "id": "jane_vacation"
+            },
+            "attrs": {},
+            "parents": [
+            {
+                "type": "Account",
+                "id": "jane"
+            }
+            ]
+        },
+        {
+            "uid": {
+            "type": "Account",
+            "id": "jane"
+            },
+            "attrs": {},
+            "parents": []
+        },
+        {
+            "uid": {
+            "type": "Account",
+            "id": "bob"
+            },
+            "attrs": {},
+            "parents": []
+        }
+    ],
+    "policies": {
+        "static_policies": [
+            {
+                "id": "staticpolicy1",
+                "statement": "permit(\r\n  principal == User::\"alice\", \r\n  action == Action::\"view\", \r\n  resource == Photo::\"VacationPhoto94.jpg\"\r\n);"
+            }
+        ],
+        "templated_policies": [
+            {
+                "id": "templatedpolicy1",
+                "template_id": "template1",
+                "principal": "User::\"alice\"",
+                "resource": "Photo::\"VacationPhoto94.jpg\""
+            }
+        ],
+        "templates": [
+            {
+                "id": "template1",
+                "statement": "permit (\r\n  principal in ?principal,\r\n  action in [Action::\"view\", Action::\"comment\"], \r\n  resource in ?resource\r\n)\r\nunless {\r\n  resource has tag && resource.tag ==\"private\"\r\n};"
+            }
+        ]
+    },
+    "schema": "{\"\":{\"actions\":{\"view\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"Administrator\",\"User\"],\"resourceTypes\":[\"Photo\",\"Video\"]}},\"comment\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"edit\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"delete\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"listAlbums\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Account\"]}},\"addPhoto\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}},\"listPhotos\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}}},\"entityTypes\":{\"Photo\":{\"shape\":{\"type\":\"Record\",\"attributes\":{}},\"memberOfTypes\":[\"Account\",\"Album\"]},\"User\":{\"memberOfTypes\":[\"UserGroup\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Account\":{\"shape\":{\"attributes\":{},\"type\":\"Record\"},\"memberOfTypes\":[]},\"Album\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"attributes\":{},\"type\":\"Record\"}},\"AccountGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Administrator\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"UserGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Video\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}}},\"commonTypes\":{}}}"
+}
+
+###
+// validate schema
+
+POST {{baseUrl}}/validate/schema HTTP/1.1
+content-type: application/json
+
+{
+    "schema": "{\"\":{\"actions\":{\"view\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"Administrator\",\"User\"],\"resourceTypes\":[\"Photo\",\"Video\"]}},\"comment\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"edit\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"delete\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"listAlbums\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Account\"]}},\"addPhoto\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}},\"listPhotos\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}}},\"entityTypes\":{\"Photo\":{\"shape\":{\"type\":\"Record\",\"attributes\":{\"IsPrivate\":{\"type\":\"Boolean\"}}},\"memberOfTypes\":[\"Account\",\"Album\"]},\"User\":{\"memberOfTypes\":[\"UserGroup\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Account\":{\"shape\":{\"attributes\":{},\"type\":\"Record\"},\"memberOfTypes\":[]},\"Album\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"attributes\":{},\"type\":\"Record\"}},\"AccountGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Administrator\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"UserGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Video\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}}},\"commonTypes\":{}}}"
+}
+
+###
+// validate template
+
+POST {{baseUrl}}/validate/template HTTP/1.1
+content-type: application/json
+
+{
+    "schema": "{\"\":{\"actions\":{\"view\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"Administrator\",\"User\"],\"resourceTypes\":[\"Photo\",\"Video\"]}},\"comment\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"edit\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"delete\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"listAlbums\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Account\"]}},\"addPhoto\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}},\"listPhotos\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}}},\"entityTypes\":{\"Photo\":{\"shape\":{\"type\":\"Record\",\"attributes\":{\"IsPrivate\":{\"type\":\"Boolean\"}}},\"memberOfTypes\":[\"Account\",\"Album\"]},\"User\":{\"memberOfTypes\":[\"UserGroup\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Account\":{\"shape\":{\"attributes\":{},\"type\":\"Record\"},\"memberOfTypes\":[]},\"Album\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"attributes\":{},\"type\":\"Record\"}},\"AccountGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Administrator\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"UserGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Video\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}}},\"commonTypes\":{}}}",
+    "template_statement": "permit (\r\n  principal in ?principal,\r\n  action in [Action::\"view\", Action::\"comment\"], \r\n  resource in ?resource\r\n)\r\nunless {\r\n  resource has tag && resource.tag ==\"private\"\r\n};"
+}
+
+###
+// validate static policy
+
+POST {{baseUrl}}/validate/static-policy HTTP/1.1
+content-type: application/json
+
+{
+    "schema": "{\"\":{\"actions\":{\"view\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"Administrator\",\"User\"],\"resourceTypes\":[\"Photo\",\"Video\"]}},\"comment\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"edit\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"delete\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"listAlbums\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Account\"]}},\"addPhoto\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}},\"listPhotos\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}}},\"entityTypes\":{\"Photo\":{\"shape\":{\"type\":\"Record\",\"attributes\":{\"IsPrivate\":{\"type\":\"Boolean\"}}},\"memberOfTypes\":[\"Account\",\"Album\"]},\"User\":{\"memberOfTypes\":[\"UserGroup\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Account\":{\"shape\":{\"attributes\":{},\"type\":\"Record\"},\"memberOfTypes\":[]},\"Album\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"attributes\":{},\"type\":\"Record\"}},\"AccountGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Administrator\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"UserGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Video\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}}},\"commonTypes\":{}}}",
+    "policy_statement": "permit(\r\n  principal == User::\"alice\", \r\n  action == Action::\"view\", \r\n  resource == Photo::\"VacationPhoto94.jpg\"\r\n);"
+}
+
+###
+// validate templated policy
+
+POST {{baseUrl}}/validate/templated-policy HTTP/1.1
+content-type: application/json
+
+{
+    "schema": "{\"\":{\"actions\":{\"view\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"Administrator\",\"User\"],\"resourceTypes\":[\"Photo\",\"Video\"]}},\"comment\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"edit\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"delete\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"listAlbums\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Account\"]}},\"addPhoto\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}},\"listPhotos\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}}},\"entityTypes\":{\"Photo\":{\"shape\":{\"type\":\"Record\",\"attributes\":{\"IsPrivate\":{\"type\":\"Boolean\"}}},\"memberOfTypes\":[\"Account\",\"Album\"]},\"User\":{\"memberOfTypes\":[\"UserGroup\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Account\":{\"shape\":{\"attributes\":{},\"type\":\"Record\"},\"memberOfTypes\":[]},\"Album\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"attributes\":{},\"type\":\"Record\"}},\"AccountGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Administrator\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"UserGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Video\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}}},\"commonTypes\":{}}}",
+    "template_statement": "permit (\r\n  principal in ?principal,\r\n  action in [Action::\"view\", Action::\"comment\"], \r\n  resource in ?resource\r\n)\r\nunless {\r\n  resource has tag && resource.tag ==\"private\"\r\n};",
+    "principal": "User::\"alice\"",
+    "resource": "Photo::\"VacationPhoto94.jpg\""
+}
+
+###
+// validate templated policy (failure example - no required principal)
+
+POST {{baseUrl}}/validate/templated-policy HTTP/1.1
+content-type: application/json
+
+{
+    "schema": "{\"\":{\"actions\":{\"view\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"Administrator\",\"User\"],\"resourceTypes\":[\"Photo\",\"Video\"]}},\"comment\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"edit\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"delete\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Photo\"]}},\"listAlbums\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Account\"]}},\"addPhoto\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}},\"listPhotos\":{\"memberOf\":[],\"appliesTo\":{\"context\":{\"type\":\"Record\",\"attributes\":{}},\"principalTypes\":[\"User\"],\"resourceTypes\":[\"Album\"]}}},\"entityTypes\":{\"Photo\":{\"shape\":{\"type\":\"Record\",\"attributes\":{\"IsPrivate\":{\"type\":\"Boolean\"}}},\"memberOfTypes\":[\"Account\",\"Album\"]},\"User\":{\"memberOfTypes\":[\"UserGroup\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Account\":{\"shape\":{\"attributes\":{},\"type\":\"Record\"},\"memberOfTypes\":[]},\"Album\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"attributes\":{},\"type\":\"Record\"}},\"AccountGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Administrator\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"UserGroup\":{\"memberOfTypes\":[],\"shape\":{\"type\":\"Record\",\"attributes\":{}}},\"Video\":{\"memberOfTypes\":[\"Account\",\"Album\"],\"shape\":{\"type\":\"Record\",\"attributes\":{}}}},\"commonTypes\":{}}}",
+    "template_statement": "permit (\r\n  principal in ?principal,\r\n  action in [Action::\"view\", Action::\"comment\"], \r\n  resource in ?resource\r\n)\r\nunless {\r\n  resource has tag && resource.tag ==\"private\"\r\n};",
+    "resource": "Photo::\"VacationPhoto94.jpg\""
+}

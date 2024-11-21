@@ -1,0 +1,8 @@
+services:
+  cedar_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cedar_agent
+    ports:
+      - '3000:3000'
