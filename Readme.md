@@ -16,6 +16,8 @@ Using docker:
 docker compose up
 ```
 
+Or use the [repository image](https://github.com/pageuppeople-opensource/mini-cedar-api/pkgs/container/mini-cedar-api).
+
 After running, the api is available at http://localhost:3000
 
 ## APIs
