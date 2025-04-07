@@ -2,10 +2,10 @@ use std::{any::Any, collections::HashMap, str::FromStr};
 
 use axum::{http::StatusCode, routing::{get, post}, Json, Router};
 use bytes::Bytes;
-use cedar_policy::{Authorizer, Context, Decision, Entities, EntityUid, Policy, PolicyId, PolicySet, Request, Response, Schema, SlotId, Template, ValidationMode, Validator};
+use cedar_policy::{Authorizer, Context, Entities, EntityUid, Policy, PolicySet, Request, Response, Schema, SlotId, Template, ValidationMode, Validator};
 use http::header;
 use http_body_util::Full;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 use tower_http::catch_panic::CatchPanicLayer;
 
@@ -56,50 +56,29 @@ async fn health_check() -> Json<&'static str> {
     Json("Hello from Rust!")
 }
 
-#[axum::debug_handler]
 async fn run_bulk_access_check(
     Json(payload): Json<BulkAccessCheckRequest>
-) -> (StatusCode, Json<Vec<AccessCheckResponse>>) {
+) -> Json<Vec<Response>> {
     println!("Payload: {:#?}", payload);
 
     // load static policies    
     let policies = parse_policy_set(payload.policies);
 
     // parse schema
-    let schema = Schema::from_json_str(&payload.schema).unwrap();
+    let schema = Schema::from_str(&payload.schema).unwrap();
 
     // parse entities
-    let entities = if payload.entities.is_string() { 
-        Entities::from_json_str(payload.entities.as_str().unwrap(), Some(&schema)).unwrap() 
-    } else { 
-        Entities::from_json_value(payload.entities, Some(&schema)).unwrap() 
-    };
+    let entities = Entities::from_json_value(payload.entities, Some(&schema)).unwrap();
 
     let authorizer = Authorizer::new();
 
-    let results = payload
-        .checks
+    let results = payload.checks
         .into_iter()
         .map(|check| run_access_check_internal(&authorizer, check, &policies, &entities, &schema))
-        .map(|response| AccessCheckResponse {
-            decision: response.decision(),
-            diagnostics: Diagnostics {
-                reason: response
-                    .diagnostics()
-                    .reason()
-                    .map(|r| r.to_string())
-                    .collect(),
-                errors: response
-                    .diagnostics()
-                    .errors()
-                    .map(|err| err.to_string())
-                    .collect(),
-            },
-        })
         .collect();
 
     println!("Response: {:#?}", results);
-    return (StatusCode::OK, Json(results));
+    return Json(results);
 }
 
 async fn validate_schema(
@@ -115,7 +94,7 @@ async fn validate_static_policy(
 ) -> (StatusCode, Json<Vec<String>>) {
     println!("Payload: {:#?}", payload);
 
-    let policy = match Policy::parse(Some(PolicyId::new("thePolicyId")), payload.policy_statement) {
+    let policy = match Policy::parse(Some("thePolicyId".into()), payload.policy_statement) {
         Ok(p) => p,
         Err(e) => return (StatusCode::BAD_REQUEST, Json(vec![e.to_string()]))
     };
@@ -165,7 +144,7 @@ async fn validate_templated_policy(
 }
 
 fn validate_policy_set_with_schema(schema: &str, policy_set: PolicySet) -> (StatusCode, Json<Vec<String>>) {
-    let schema = match Schema::from_json_str(schema) {
+    let schema = match Schema::from_str(schema) {
         Ok(s) => s,
         Err(e) => return (StatusCode::BAD_REQUEST, Json(vec![e.to_string()]))
     };
@@ -184,7 +163,7 @@ fn parse_policy_set(payload: InputAllPolicies) -> PolicySet {
     let mut policies = PolicySet::new();
 
     for static_policy in payload.static_policies {
-        let policy = Policy::parse(Some(PolicyId::new(static_policy.id)), static_policy.statement).unwrap();
+        let policy = Policy::parse(Some(static_policy.id), static_policy.statement).unwrap();
         policies.add(policy).unwrap();
     }
 
@@ -219,7 +198,7 @@ fn add_templated_policy(policy_set: &mut PolicySet, policy_id: String, template_
 }
 
 fn add_template(policy_set: &mut PolicySet, template_id: &String, statement: String) -> Result<(), Vec<String>> {
-    let template = match Template::parse(Some(PolicyId::new(template_id)), statement) {
+    let template = match Template::parse(Some(template_id.clone()), statement) {
         Ok(p) => p,
         Err(e) => return Err(vec![e.to_string()])
     };
@@ -233,15 +212,12 @@ fn run_access_check_internal(authorizer: &Authorizer, check: AccessCheck, polici
     let principal = check.principal.parse().unwrap();
     let resource = check.resource.parse().unwrap();
     let context = match check.context {
-        Some(ctx) => match ctx.as_str() {
-            Some(str) => Context::from_json_str(str, Some((_schema, &action))).unwrap(),
-            None => Context::from_json_value(ctx, None).unwrap()
-        },
+        Some(ctx) => Context::from_json_value(ctx, None).unwrap(),
         None => Context::empty(),
     };
 
     // TODO: Future versions of cedar support adding the schema to the request, do this when we update support
-    let request = Request::new(principal, action, resource, context, Some(_schema)).unwrap();
+    let request = Request::new(Some(principal), Some(action), Some(resource), context);
 
     // run the check
     authorizer.is_authorized(&request, &policies, &entities)
@@ -313,22 +289,4 @@ struct InputTemplatedPolicy {
 struct InputTemplate {
     id: String,
     statement: String
-}
-
-#[derive(Serialize, Debug)]
-struct AccessCheckResponse {
-    /// Authorization decision
-    decision: Decision,
-    /// Diagnostics providing more information on how this decision was reached
-    diagnostics: Diagnostics,
-}
-
-#[derive(Serialize, Debug)]
-struct Diagnostics {
-    /// `PolicyId`s of the policies that contributed to the decision.
-    /// If no policies applied to the request, this set will be empty.
-    reason: Vec<String>,
-    /// Errors that occurred during authorization. The errors should be
-    /// treated as unordered, since policies may be evaluated in any order.
-    errors: Vec<String>,
 }
