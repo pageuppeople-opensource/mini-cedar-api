@@ -39,7 +39,7 @@ Check out the [rest api file](./rest-apis.http) for examples.
             "uid": { "type": string, "id": string },
             "attrs": { }, // see sample entities in cedar repos
             "parents": { "type": string, "id": string }[]
-        },
+        }[] | string, // alternatively just use cedar-json
         "policies": {
             "static_policies": { "id": string, "statement": string }[],
             "templated_policies": {
